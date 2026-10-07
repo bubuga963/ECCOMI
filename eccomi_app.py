@@ -3,12 +3,12 @@ import os
 import pandas as pd
 import streamlit as st
 
-# Configuração da Página do Aplicativo (Estrela preta no favicon)
+# Configuração da Página do Aplicativo
 st.set_page_config(
     page_title="Lista de Presença", page_icon="★", layout="centered"
 )
 
-# Estilização CSS rigorosa (Menu lateral refinado, bordas finas, fonte Nunito, fundo branco)
+# Estilização CSS (Barra lateral fixa/limpa, fonte Nunito, fundo branco)
 st.markdown(
     """
     <style>
@@ -46,12 +46,6 @@ st.markdown(
         font-family: 'Nunito', sans-serif !important;
         color: #000000 !important;
         font-size: 11px !important;
-    }
-    
-    /* Restaurar e estilizar o botão de fechar/abrir a barra lateral nativo do Streamlit */
-    [data-testid="collapsedControl"], button[kind="header"], header [data-testid="baseButton-header"] {
-        display: flex !important;
-        color: #000000 !important;
     }
 
     /* Botões padronizados com borda fina preta e fundo branco */
@@ -127,7 +121,7 @@ query_params = st.query_params
 evento_link = query_params.get("evento", None)
 cat_link = query_params.get("cat", None)
 
-# --- MENU LATERAL DA COORDENAÇÃO (ESTILO DA SUA REFERÊNCIA) ---
+# --- MENU LATERAL DA COORDENAÇÃO ---
 st.sidebar.markdown(
     '<div class="eccomi-title">ECCOMI</div>', unsafe_allow_html=True
 )
@@ -184,7 +178,7 @@ def listar_grupos():
 
 grupos_disponiveis = listar_grupos()
 
-# --- TÍTULO PRINCIPAL (32px) ---
+# --- TÍTULO PRINCIPAL ---
 st.markdown("<h1>LISTA DE PRESENÇA</h1>", unsafe_allow_html=True)
 st.markdown(
     "<p>Controle de Embarque, Desembarque e Segurança para Guias e"
@@ -193,7 +187,7 @@ st.markdown(
 )
 st.markdown("<hr style='border: 0.5px solid #000000;'>", unsafe_allow_html=True)
 
-# --- ÁREA PARTICULAR DO EVENTO (VIA LINK OU BOTÃO) ---
+# --- ÁREA PARTICULAR DO EVENTO ---
 if evento_link:
   pasta_alvo = PASTA_VIAGENS if cat_link == "viagens" else PASTA_FESTAS
   caminho_arquivo = os.path.join(pasta_alvo, f"{evento_link}.xlsx")
@@ -221,8 +215,16 @@ if evento_link:
 
     with aba_info:
       st.markdown(
-          "<h3>Detalhes Operacionais do Evento</h3>", unsafe_allow_html=True
+          "<h3>Detalhes Operacionais e Mídia do Evento</h3>",
+          unsafe_allow_html=True,
       )
+      link_drive = info_data.get("drive_fotos", "Não informado")
+      link_html = (
+          f'<a href="{link_drive}" target="_blank">{link_drive}</a>'
+          if link_drive.startswith("http")
+          else link_drive
+      )
+
       st.markdown(
           f"""
                 <div class="info-box">
@@ -231,14 +233,15 @@ if evento_link:
                     <b>Horário:</b> {info_data.get('horario', 'Não informado')}<br>
                     <b>Roteiro:</b> {info_data.get('roteiro', 'Não informado')}<br>
                     <b>Transporte:</b> {info_data.get('transporte', 'Não informado')} (Motorista: {info_data.get('motorista', 'Não informado')})<br>
-                    <b>Equipe de Apoio:</b> {info_data.get('equipe', 'Não informado')}
+                    <b>Equipe de Apoio:</b> {info_data.get('equipe', 'Não informado')}<br>
+                    <b>📸 Link Google Drive / Fotos do Evento:</b> {link_html}
                 </div>
             """,
           unsafe_allow_html=True,
       )
 
       st.markdown(
-          "<h3>Editar Informações Operacionais</h3>", unsafe_allow_html=True
+          "<h3>Editar Informações e Link de Fotos</h3>", unsafe_allow_html=True
       )
       with st.form("form_info_extra"):
         loc = st.text_input("Local (Endereço):", value=info_data.get("local", ""))
@@ -262,6 +265,10 @@ if evento_link:
             "Equipe Responsável (Nome, Tel e Info):",
             value=info_data.get("equipe", ""),
         )
+        drive = st.text_input(
+            "Link do Google Drive / Fotos do Evento:",
+            value=info_data.get("drive_fotos", ""),
+        )
 
         if st.form_submit_button("Salvar Informações Operacionais"):
           novo_dict = {
@@ -272,10 +279,11 @@ if evento_link:
               "transporte": trans,
               "motorista": mot,
               "equipe": eqp,
+              "drive_fotos": drive,
           }
           with open(caminho_info, "w", encoding="utf-8") as f:
             json.dump(novo_dict, f, ensure_ascii=False)
-          st.success("Informações salvas com sucesso!")
+          st.success("Informações e link salvos com sucesso!")
           st.rerun()
 
     df = pd.read_excel(caminho_arquivo)
@@ -331,7 +339,6 @@ if evento_link:
           "<h3>Conferência de Entrada (Embarque)</h3>", unsafe_allow_html=True
       )
 
-      # --- NOVA BARRA DE PESQUISA DE PARTICIPANTES ---
       termo_busca_part = st.text_input(
           "🔍 Pesquisar participante por nome, CPF ou ID:",
           placeholder="Digite para filtrar instantaneamente...",
@@ -474,7 +481,6 @@ else:
   if menu_guia == "Painel de Eventos":
     st.markdown(f"<h3>Painel Geral - {categoria_evento}</h3>", unsafe_allow_html=True)
 
-    # Usa o termo de busca vindo do menu lateral ou da tela
     termo_busca = (
         termo_busca_menu
         if termo_busca_menu
