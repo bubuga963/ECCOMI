@@ -3,14 +3,14 @@ import json
 import pandas as pd
 import streamlit as st
 
-# 1. Configuração da Página (Sidebar Nativa Habilitada)
+# 1. Configuração da Página
 st.set_page_config(
     page_title="Eccomi",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. CSS Limpo e Seguro (Apenas Cores Preto e Branco e Fonte Nunito)
+# 2. CSS Estrito (Preto e Branco, Fonte Nunito, Mínimo 14px)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
@@ -49,7 +49,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Pastas de Dados
+# 3. Criação e Verificação das Pastas de Dados
 PASTA_VIAGENS = "bases_viagens"
 PASTA_FESTAS = "bases_festas"
 PASTA_INFO = "bases_info_eventos"
@@ -83,7 +83,7 @@ def listar_grupos(pasta):
     return []
 
 # ==========================================
-# BARRA LATERAL NATIVA (OFICIAL DO STREAMLIT)
+# BARRA LATERAL NATIVA
 # ==========================================
 with st.sidebar:
     st.markdown("## ECCOMI")
@@ -100,10 +100,10 @@ with st.sidebar:
 
 
 # ==========================================
-# CONTEÚDO PRINCIPAL
+# PÁGINAS DO SISTEMA
 # ==========================================
 
-# --- 1. PÁGINA INICIAL (HOME) ---
+# --- 1. PÁGINA INICIAL REAL (HOME) ---
 if st.session_state.pagina == 'home':
     st.markdown("<h1>ECCOMI</h1>", unsafe_allow_html=True)
     st.markdown("<p><b>Sistema B2B de Gestão de Eventos, Controle de Embarque e Segurança.</b></p>", unsafe_allow_html=True)
@@ -119,7 +119,7 @@ if st.session_state.pagina == 'home':
     st.write("")
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("Ir para Painel de Eventos", use_container_width=True): 
+        if st.button("Painel de Eventos", use_container_width=True): 
             navegar('painel')
     with col2:
         if st.button("Cadastrar Novo Evento", use_container_width=True): 
@@ -202,7 +202,7 @@ elif st.session_state.pagina == 'painel':
                     df_novo.to_excel(caminho_g, index=False)
                     st.success("Planilha atualizada com sucesso!")
             
-            st.markdown("<hr style='border: 1px solid #CCC;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='border: 0.5px solid #CCC;'>", unsafe_allow_html=True)
     else:
         st.info("Nenhum evento cadastrado nesta categoria.")
 
@@ -246,7 +246,7 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
             """, unsafe_allow_html=True)
             
             with st.expander("Editar Informações do Evento"):
-                with st.form("form_info"):
+                with st.form("form_info_editar"):
                     loc = st.text_input("Local:", value=info_data.get('local', ''))
                     t_loc = st.text_input("Telefone:", value=info_data.get('tel_local', ''))
                     hor = st.text_input("Horário:", value=info_data.get('horario', ''))
@@ -255,8 +255,18 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
                     mot = st.text_input("Motorista/Tel:", value=info_data.get('motorista', ''))
                     eqp = st.text_area("Equipe Responsável:", value=info_data.get('equipe', ''))
                     drive = st.text_input("Link Google Drive:", value=info_data.get('drive_fotos', ''))
+                    
                     if st.form_submit_button("Salvar Dados"):
-                        novo_dict = {"local": loc, "tel_local": t_loc, "horario": hor, "roteiro": rot, "transporte": trans, "motorista": mot, "equipe": eqp, "drive_fotos": drive}
+                        novo_dict = {
+                            "local": loc,
+                            "tel_local": t_loc,
+                            "horario": hor,
+                            "roteiro": rot,
+                            "transporte": trans,
+                            "motorista": mot,
+                            "equipe": eqp,
+                            "drive_fotos": drive
+                        }
                         with open(caminho_info, "w", encoding="utf-8") as f: 
                             json.dump(novo_dict, f, ensure_ascii=False)
                         st.success("Salvo com sucesso!")
