@@ -3,35 +3,39 @@ import json
 import pandas as pd
 import streamlit as st
 
-# 1. Configuração Base (Layout expandido e título)
+# 1. Configuração da Página (Layout Limpo sem chamada de Sidebar)
 st.set_page_config(
     page_title="Eccomi",
     layout="wide"
 )
 
-# 2. CSS Seguro (Apenas Cores Preto e Branco e Fonte Nunito - Sem hacks destrutivos)
+# 2. CSS Estrito: Cores Preto e Branco, Fonte Nunito, Sem Hacks Destrutivos
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
-    
-    /* Aplica Nunito e fundo branco a toda a aplicação */
+
     .stApp, .stApp > header {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         font-family: 'Nunito', sans-serif !important;
     }
     
+    /* Força ocultação total de qualquer elemento de barra lateral que o Streamlit tente injetar */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"], div[data-testid="collapsedControl"] {
+        display: none !important;
+        width: 0 !important;
+        visibility: hidden !important;
+    }
+
     h1, h2, h3, p, span, div, label {
         font-family: 'Nunito', sans-serif !important;
         color: #000000 !important;
     }
-    
-    /* Tamanho de fonte seguro para leitura em campo (mínimo 14px na web para legibilidade mobile) */
+
     p, span, label, div {
         font-size: 14px !important;
     }
 
-    /* Estilos das caixas de informação e cartões */
     .card-evento {
         border: 1px solid #000000;
         padding: 20px;
@@ -51,7 +55,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Criação de Pastas de Dados
+# 3. Criação e Verificação das Pastas de Dados
 PASTA_VIAGENS = "bases_viagens"
 PASTA_FESTAS = "bases_festas"
 PASTA_INFO = "bases_info_eventos"
@@ -61,7 +65,7 @@ for p in [PASTA_VIAGENS, PASTA_FESTAS, PASTA_INFO, PASTA_ARQUIVO]:
     if not os.path.exists(p):
         os.makedirs(p)
 
-# 4. Gestão de Navegação Sólida (Session State)
+# 4. Controle de Navegação via Session State (Sem dependência de URL)
 if 'pagina' not in st.session_state:
     st.session_state.pagina = 'home'
 if 'evento_ativo' not in st.session_state:
@@ -85,10 +89,10 @@ def listar_grupos(pasta):
     return []
 
 # ==========================================
-# ROTEAMENTO DAS PÁGINAS (SEM BARRA LATERAL)
+# ROTEAMENTO E PÁGINAS DO SISTEMA
 # ==========================================
 
-# --- PÁGINA INICIAL (HOME) ---
+# --- 1. PÁGINA INICIAL REAL (HOME) ---
 if st.session_state.pagina == 'home':
     st.markdown("<h1>ECCOMI</h1>", unsafe_allow_html=True)
     st.markdown("<p><b>Sistema B2B de Gestão de Eventos, Controle de Embarque e Segurança.</b></p>", unsafe_allow_html=True)
@@ -97,24 +101,27 @@ if st.session_state.pagina == 'home':
     st.markdown("""
         <div class="card-evento">
             <h3>Bem-vindo ao Eccomi</h3>
-            <p>A sua ferramenta cirúrgica de campo. Substitua planilhas de papel e grupos de WhatsApp por um controle rápido, alertas médicos imediatos e chamadas seguras. Selecione uma opção abaixo para começar:</p>
+            <p>Plataforma operacional desenvolvida para agências de turismo, excursões e escolas. Elimine planilhas de papel em campo com chamadas rápidas, alertas médicos em destaque e relatórios de embarque seguros.</p>
         </div>
     """, unsafe_allow_html=True)
     
-    st.write("") # Espaçamento
-    
+    st.write("")
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("📁 Painel de Eventos", use_container_width=True): navegar('painel')
+        if st.button("Painel de Eventos", use_container_width=True): 
+            navegar('painel')
     with col2:
-        if st.button("➕ Cadastrar Novo Evento", use_container_width=True): navegar('cadastrar')
+        if st.button("Cadastrar Novo Evento", use_container_width=True): 
+            navegar('cadastrar')
     with col3:
-        if st.button("🗄️ Arquivo e Ocorrências", use_container_width=True): navegar('arquivo')
+        if st.button("Arquivo e Ocorrências", use_container_width=True): 
+            navegar('arquivo')
 
 
-# --- PAINEL GERAL DE EVENTOS ---
+# --- 2. PAINEL DE EVENTOS ---
 elif st.session_state.pagina == 'painel':
-    if st.button("⬅ Voltar à Página Inicial"): navegar('home')
+    if st.button("Voltar à Página Inicial"): 
+        navegar('home')
     
     st.markdown("<h1>PAINEL DE EVENTOS</h1>", unsafe_allow_html=True)
     categoria_evento = st.radio("Selecione o Tipo de Operação:", ["Viagens e Excursões", "Festas e Eventos"], horizontal=True)
@@ -142,7 +149,8 @@ elif st.session_state.pagina == 'painel':
                     total_p = len(df_g)
                     if 'Status Entrada' in df_g.columns:
                         presentes_p = len(df_g[df_g['Status Entrada'] == "Presente"])
-                except: pass
+                except:
+                    pass
             
             if os.path.exists(caminho_inf_g):
                 try:
@@ -150,7 +158,8 @@ elif st.session_state.pagina == 'painel':
                         inf_j = json.load(f)
                         local_g = inf_j.get('local', 'Não informado')
                         horario_g = inf_j.get('horario', 'Não informado')
-                except: pass
+                except:
+                    pass
 
             st.markdown(f"""
                 <div class="card-evento">
@@ -160,24 +169,25 @@ elif st.session_state.pagina == 'painel':
                 </div>
             """, unsafe_allow_html=True)
             
-            # Formato correto e limpo para os botões e upload no Streamlit
+            # Botões Nativos e Alinhados
             col_b1, col_b2, col_b3 = st.columns(3)
             with col_b1:
-                if st.button(f"Abrir: {g.replace('_', ' ')}", use_container_width=True): 
+                if st.button(f"Abrir Evento", key=f"btn_{g}", use_container_width=True): 
                     abrir_evento(g, cat_param)
             with col_b2:
-                if st.button(f"Arquivar Evento", key=f"arq_{g}", use_container_width=True):
+                if st.button("Arquivar Evento", key=f"arq_{g}", use_container_width=True):
                     os.rename(caminho_g, os.path.join(PASTA_ARQUIVO, f"{g}.xlsx"))
                     st.rerun()
             with col_b3:
-                if st.button(f"Excluir Evento", key=f"del_{g}", use_container_width=True):
+                if st.button("Excluir Evento", key=f"del_{g}", use_container_width=True):
                     os.remove(caminho_g)
-                    if os.path.exists(caminho_inf_g): os.remove(caminho_inf_g)
+                    if os.path.exists(caminho_inf_g): 
+                        os.remove(caminho_inf_g)
                     st.rerun()
             
-            # O Upload deve ficar num Expander nativo (parece um botão longo que abre para revelar o uploader)
+            # Resolução do Upload via Expander Nativo
             with st.expander("Atualizar Planilha do Evento (Upload)"):
-                novo_excel = st.file_uploader(f"Substituir planilha para {g}:", type=["xlsx"], key=f"up_{g}")
+                novo_excel = st.file_uploader(f"Substituir planilha (.xlsx) para {g}:", type=["xlsx"], key=f"up_{g}")
                 if novo_excel is not None:
                     df_novo = pd.read_excel(novo_excel)
                     df_novo.to_excel(caminho_g, index=False)
@@ -188,9 +198,10 @@ elif st.session_state.pagina == 'painel':
         st.info("Nenhum evento cadastrado nesta categoria.")
 
 
-# --- ÁREA INTERNA DO EVENTO SELECIONADO ---
+# --- 3. ÁREA INTERNA DO EVENTO SELECIONADO ---
 elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ativo:
-    if st.button("⬅ Voltar ao Painel"): navegar('painel')
+    if st.button("Voltar ao Painel"): 
+        navegar('painel')
     
     g_ativo = st.session_state.evento_ativo
     pasta_alvo = PASTA_VIAGENS if st.session_state.cat_ativa == "viagens" else PASTA_FESTAS
@@ -203,12 +214,13 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
         
         info_data = {}
         if os.path.exists(caminho_info):
-            with open(caminho_info, "r", encoding="utf-8") as f: info_data = json.load(f)
+            with open(caminho_info, "r", encoding="utf-8") as f: 
+                info_data = json.load(f)
 
-        aba_info, aba_chamada, aba_saida = st.tabs(["Informações", "Entrada (Embarque)", "Saída (Desembarque)"])
+        aba_info, aba_chamada, aba_saida = st.tabs(["Informações e Logística", "Entrada (Embarque)", "Saída (Desembarque)"])
         
         with aba_info:
-            st.markdown("<h3>Detalhes do Evento</h3>", unsafe_allow_html=True)
+            st.markdown("<h3>Detalhes Operacionais</h3>", unsafe_allow_html=True)
             link_drive = info_data.get('drive_fotos', 'Não informado')
             link_html = f'<a href="{link_drive}" target="_blank">{link_drive}</a>' if link_drive.startswith('http') else link_drive
             
@@ -236,8 +248,9 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
                     drive = st.text_input("Link Google Drive:", value=info_data.get('drive_fotos', ''))
                     if st.form_submit_button("Salvar Dados"):
                         novo_dict = {"local": loc, "tel_local": t_loc, "horario": hor, "roteiro": rot, "transporte": trans, "motorista": mot, "equipe": eqp, "drive_fotos": drive}
-                        with open(caminho_info, "w", encoding="utf-8") as f: json.dump(novo_dict, f, ensure_ascii=False)
-                        st.success("Salvo!")
+                        with open(caminho_info, "w", encoding="utf-8") as f: 
+                            json.dump(novo_dict, f, ensure_ascii=False)
+                        st.success("Salvo com sucesso!")
                         st.rerun()
 
         df = pd.read_excel(caminho_arquivo)
@@ -245,8 +258,10 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
         col_nome = df.columns[1]
         col_ficha = df.columns[5] if len(df.columns) > 5 else df.columns[-1]
         
-        if 'Status Entrada' not in df.columns: df['Status Entrada'] = "Pendente"
-        if 'Status Saida' not in df.columns: df['Status Saida'] = "Pendente"
+        if 'Status Entrada' not in df.columns: 
+            df['Status Entrada'] = "Pendente"
+        if 'Status Saida' not in df.columns: 
+            df['Status Saida'] = "Pendente"
 
         with aba_chamada:
             pesquisa = st.text_input("Pesquisar nome/ID:", key="pesq_ent")
@@ -257,4 +272,84 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
                 novos_status = {}
                 for i, row in df_filt.iterrows():
                     ficha = row[col_ficha] if pd.notna(row[col_ficha]) and str(row[col_ficha]).lower() not in ["", "nao ha.", "nenhum"] else None
-                    st.markdown(f"<div style
+                    st.markdown(f"<div><b>{row[col_id]} - {row[col_nome]}</b></div>", unsafe_allow_html=True)
+                    s_atual = str(row['Status Entrada']) if pd.notna(row['Status Entrada']) else "Pendente"
+                    novos_status[i] = st.radio(
+                        f"Status para {row[col_nome]}:", 
+                        ["Pendente", "Presente", "Faltou"], 
+                        index=["Pendente", "Presente", "Faltou"].index(s_atual) if s_atual in ["Pendente", "Presente", "Faltou"] else 0, 
+                        key=f"ent_{i}", 
+                        horizontal=True, 
+                        label_visibility="collapsed"
+                    )
+                    if ficha: 
+                        st.markdown(f"<div class='alerta-medico'>ALERTA MÉDICO: {ficha}</div>", unsafe_allow_html=True)
+                    st.markdown("<hr style='border: 0.5px solid #CCC;'>", unsafe_allow_html=True)
+                
+                if st.form_submit_button("Salvar Chamada de Entrada"):
+                    for idx, val in novos_status.items(): 
+                        df.at[idx, 'Status Entrada'] = val
+                    df.to_excel(caminho_arquivo, index=False)
+                    st.success("Chamada salva com sucesso!")
+                    st.rerun()
+
+        with aba_saida:
+            with st.form("form_sai"):
+                novos_status_s = {}
+                for i, row in df.iterrows():
+                    st.markdown(f"<div><b>{row[col_id]} - {row[col_nome]}</b></div>", unsafe_allow_html=True)
+                    s_atual_s = str(row['Status Saida']) if pd.notna(row['Status Saida']) else "Pendente"
+                    novos_status_s[i] = st.radio(
+                        f"Saída para {row[col_nome]}:", 
+                        ["Pendente", "Entregue", "Atenção"], 
+                        index=["Pendente", "Entregue", "Atenção"].index(s_atual_s) if s_atual_s in ["Pendente", "Entregue", "Atenção"] else 0, 
+                        key=f"sai_{i}", 
+                        horizontal=True, 
+                        label_visibility="collapsed"
+                    )
+                    st.markdown("<hr style='border: 0.5px solid #CCC;'>", unsafe_allow_html=True)
+                
+                if st.form_submit_button("Salvar Saída"):
+                    for idx, val in novos_status_s.items(): 
+                        df.at[idx, 'Status Saida'] = val
+                    df.to_excel(caminho_arquivo, index=False)
+                    st.success("Saída salva com sucesso!")
+                    st.rerun()
+
+
+# --- 4. CADASTRAR EVENTO ---
+elif st.session_state.pagina == 'cadastrar':
+    if st.button("Voltar à Página Inicial"): 
+        navegar('home')
+    st.markdown("<h1>CADASTRAR NOVO EVENTO</h1>", unsafe_allow_html=True)
+    
+    categoria_evento = st.radio("Selecione a Categoria:", ["Viagens e Excursões", "Festas e Eventos"])
+    PASTA = PASTA_VIAGENS if categoria_evento == "Viagens e Excursões" else PASTA_FESTAS
+    
+    with st.form("form_cad"):
+        nome_grupo = st.text_input("Nome do Evento:")
+        if st.form_submit_button("Criar Evento") and nome_grupo.strip():
+            caminho = os.path.join(PASTA, f"{nome_grupo.strip().replace(' ', '_')}.xlsx")
+            if not os.path.exists(caminho):
+                pd.DataFrame({"CPF/ID": ["000"], "Nome": ["Exemplo"], "Ficha Médica": ["Nenhum"]}).to_excel(caminho, index=False)
+                st.success("Evento Criado!")
+                st.rerun()
+            else: 
+                st.warning("Evento já existe.")
+
+
+# --- 5. ARQUIVOS E PASSADOS ---
+elif st.session_state.pagina == 'arquivo':
+    if st.button("Voltar à Página Inicial"): 
+        navegar('home')
+    st.markdown("<h1>EVENTOS ARQUIVADOS</h1>", unsafe_allow_html=True)
+    
+    arquivados = listar_grupos(PASTA_ARQUIVO)
+    if arquivados:
+        for arq in arquivados:
+            st.markdown(f'<div class="card-evento"><b>{arq.replace("_", " ")}</b></div>', unsafe_allow_html=True)
+            if st.button(f"Desarquivar {arq}"):
+                os.rename(os.path.join(PASTA_ARQUIVO, f"{arq}.xlsx"), os.path.join(PASTA_VIAGENS, f"{arq}.xlsx"))
+                st.rerun()
+    else:
+        st.info("Nenhum evento arquivado no momento.")
