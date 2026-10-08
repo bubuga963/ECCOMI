@@ -3,14 +3,14 @@ import json
 import pandas as pd
 import streamlit as st
 
-# 1. Configuração da Página
+# 1. Configuração de Página com suporte nativo completo
 st.set_page_config(
     page_title="Eccomi",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. CSS Estrito (Preto e Branco, Fonte Nunito, Mínimo 14px)
+# 2. CSS Limpo (Permite a renderização correta de fontes e ícones nativos do Streamlit)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
@@ -49,7 +49,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Criação e Verificação das Pastas de Dados
+# 3. Gerenciamento de Pastas
 PASTA_VIAGENS = "bases_viagens"
 PASTA_FESTAS = "bases_festas"
 PASTA_INFO = "bases_info_eventos"
@@ -59,7 +59,7 @@ for p in [PASTA_VIAGENS, PASTA_FESTAS, PASTA_INFO, PASTA_ARQUIVO]:
     if not os.path.exists(p):
         os.makedirs(p)
 
-# 4. Controle de Navegação via Session State
+# 4. Estado de Navegação
 if 'pagina' not in st.session_state:
     st.session_state.pagina = 'home'
 if 'evento_ativo' not in st.session_state:
@@ -83,7 +83,7 @@ def listar_grupos(pasta):
     return []
 
 # ==========================================
-# BARRA LATERAL NATIVA
+# BARRA LATERAL NATIVA (Ícones do sistema habilitados)
 # ==========================================
 with st.sidebar:
     st.markdown("## ECCOMI")
@@ -100,10 +100,10 @@ with st.sidebar:
 
 
 # ==========================================
-# PÁGINAS DO SISTEMA
+# ESTRUTURA DAS PÁGINAS
 # ==========================================
 
-# --- 1. PÁGINA INICIAL REAL (HOME) ---
+# --- 1. PÁGINA INICIAL (HOME) ---
 if st.session_state.pagina == 'home':
     st.markdown("<h1>ECCOMI</h1>", unsafe_allow_html=True)
     st.markdown("<p><b>Sistema B2B de Gestão de Eventos, Controle de Embarque e Segurança.</b></p>", unsafe_allow_html=True)
@@ -182,7 +182,7 @@ elif st.session_state.pagina == 'painel':
             
             col_b1, col_b2, col_b3 = st.columns(3)
             with col_b1:
-                if st.button(f"Abrir Evento", key=f"btn_{g}", use_container_width=True): 
+                if st.button("Abrir Evento", key=f"btn_{g}", use_container_width=True): 
                     abrir_evento(g, cat_param)
             with col_b2:
                 if st.button("Arquivar Evento", key=f"arq_{g}", use_container_width=True):
