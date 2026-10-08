@@ -3,28 +3,22 @@ import json
 import pandas as pd
 import streamlit as st
 
-# 1. Configuração da Página (Layout Limpo sem chamada de Sidebar)
+# 1. Configuração da Página (Sidebar Nativa Habilitada)
 st.set_page_config(
     page_title="Eccomi",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# 2. CSS Estrito: Cores Preto e Branco, Fonte Nunito, Sem Hacks Destrutivos
+# 2. CSS Limpo e Seguro (Apenas Cores Preto e Branco e Fonte Nunito)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
 
-    .stApp, .stApp > header {
+    .stApp {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         font-family: 'Nunito', sans-serif !important;
-    }
-    
-    /* Força ocultação total de qualquer elemento de barra lateral que o Streamlit tente injetar */
-    [data-testid="stSidebar"], section[data-testid="stSidebar"], div[data-testid="collapsedControl"] {
-        display: none !important;
-        width: 0 !important;
-        visibility: hidden !important;
     }
 
     h1, h2, h3, p, span, div, label {
@@ -55,7 +49,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Criação e Verificação das Pastas de Dados
+# 3. Pastas de Dados
 PASTA_VIAGENS = "bases_viagens"
 PASTA_FESTAS = "bases_festas"
 PASTA_INFO = "bases_info_eventos"
@@ -65,7 +59,7 @@ for p in [PASTA_VIAGENS, PASTA_FESTAS, PASTA_INFO, PASTA_ARQUIVO]:
     if not os.path.exists(p):
         os.makedirs(p)
 
-# 4. Controle de Navegação via Session State (Sem dependência de URL)
+# 4. Controle de Navegação via Session State
 if 'pagina' not in st.session_state:
     st.session_state.pagina = 'home'
 if 'evento_ativo' not in st.session_state:
@@ -89,10 +83,27 @@ def listar_grupos(pasta):
     return []
 
 # ==========================================
-# ROTEAMENTO E PÁGINAS DO SISTEMA
+# BARRA LATERAL NATIVA (OFICIAL DO STREAMLIT)
+# ==========================================
+with st.sidebar:
+    st.markdown("## ECCOMI")
+    st.markdown("---")
+    st.markdown("### Menu Principal")
+    if st.button("Página Inicial", use_container_width=True):
+        navegar('home')
+    if st.button("Painel de Eventos", use_container_width=True):
+        navegar('painel')
+    if st.button("Cadastrar Evento", use_container_width=True):
+        navegar('cadastrar')
+    if st.button("Eventos Arquivados", use_container_width=True):
+        navegar('arquivo')
+
+
+# ==========================================
+# CONTEÚDO PRINCIPAL
 # ==========================================
 
-# --- 1. PÁGINA INICIAL REAL (HOME) ---
+# --- 1. PÁGINA INICIAL (HOME) ---
 if st.session_state.pagina == 'home':
     st.markdown("<h1>ECCOMI</h1>", unsafe_allow_html=True)
     st.markdown("<p><b>Sistema B2B de Gestão de Eventos, Controle de Embarque e Segurança.</b></p>", unsafe_allow_html=True)
@@ -108,7 +119,7 @@ if st.session_state.pagina == 'home':
     st.write("")
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("Painel de Eventos", use_container_width=True): 
+        if st.button("Ir para Painel de Eventos", use_container_width=True): 
             navegar('painel')
     with col2:
         if st.button("Cadastrar Novo Evento", use_container_width=True): 
@@ -169,7 +180,6 @@ elif st.session_state.pagina == 'painel':
                 </div>
             """, unsafe_allow_html=True)
             
-            # Botões Nativos e Alinhados
             col_b1, col_b2, col_b3 = st.columns(3)
             with col_b1:
                 if st.button(f"Abrir Evento", key=f"btn_{g}", use_container_width=True): 
@@ -185,7 +195,6 @@ elif st.session_state.pagina == 'painel':
                         os.remove(caminho_inf_g)
                     st.rerun()
             
-            # Resolução do Upload via Expander Nativo
             with st.expander("Atualizar Planilha do Evento (Upload)"):
                 novo_excel = st.file_uploader(f"Substituir planilha (.xlsx) para {g}:", type=["xlsx"], key=f"up_{g}")
                 if novo_excel is not None:
