@@ -3,14 +3,14 @@ import json
 import pandas as pd
 import streamlit as st
 
-# Configuração da Página do Aplicativo
+# Configuração da Página do Aplicativo (Wide para ocupar todo o ecrã)
 st.set_page_config(
     page_title="Eccomi",
     page_icon="",
-    layout="centered"
+    layout="wide"
 )
 
-# Estilização CSS em Preto e Branco, Fonte Nunito, Tamanho mínimo de 12px, sem barra lateral
+# Estilização CSS Corrigida: Ocultação total de barras e ajuste real de botões e uploaders
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
@@ -21,12 +21,20 @@ st.markdown("""
         font-family: 'Nunito', sans-serif !important;
     }
     
-    /* Ocultar completamente a barra lateral nativa do Streamlit */
-    [data-testid="stSidebar"] {
+    /* Eliminação total e definitiva da barra lateral e controlos de expansão */
+    [data-testid="stSidebar"], section[data-testid="stSidebar"], div[data-testid="collapsedControl"] {
         display: none !important;
+        width: 0 !important;
+        visibility: hidden !important;
     }
     
-    /* Títulos e Textos padronizados com tamanho mínimo de 12px */
+    /* Ajuste do container principal para ocupar o espaço sem margens laterais vazias */
+    .block-container {
+        padding-top: 2rem;
+        max-width: 1000px;
+    }
+
+    /* Tipografia padronizada (Tamanho mínimo de 12px, fonte Nunito) */
     .eccomi-title {
         font-family: 'Nunito', sans-serif !important;
         color: #000000 !important;
@@ -38,7 +46,7 @@ st.markdown("""
     h1 {
         font-family: 'Nunito', sans-serif !important;
         color: #000000 !important;
-        font-size: 28px !important;
+        font-size: 26px !important;
         font-weight: 700 !important;
     }
     h2, h3 {
@@ -53,20 +61,36 @@ st.markdown("""
         font-size: 12px !important;
     }
 
-    /* Botões padronizados com borda fina preta e fundo branco */
-    div.stButton > button:first-child {
+    /* Padronização absoluta de botões e caixas de upload em preto e branco */
+    div.stButton > button:first-child, div.stFileUploader label {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         border: 1px solid #000000 !important;
         border-radius: 4px;
-        width: 100%;
         font-family: 'Nunito', sans-serif !important;
         font-weight: 600;
         font-size: 12px !important;
+    }
+    
+    div.stButton > button:first-child {
+        width: 100%;
         padding: 8px 12px;
     }
+    
     div.stButton > button:first-child:hover {
         background-color: #F8F9FA !important;
+    }
+
+    /* Correção visual do componente de upload de ficheiros */
+    [data-testid="stFileUploader"] {
+        border: 1px solid #000000;
+        border-radius: 4px;
+        padding: 10px;
+        background-color: #FFFFFF;
+    }
+    [data-testid="stFileUploader"] section {
+        padding: 0px !important;
+        background-color: #FFFFFF !important;
     }
 
     .alerta-medico {
@@ -119,7 +143,7 @@ for p in [PASTA_VIAGENS, PASTA_FESTAS, PASTA_INFO, PASTA_ARQUIVO]:
     if not os.path.exists(p):
         os.makedirs(p)
 
-# Captura de parâmetros via URL
+# Parâmetros de navegação por URL
 query_params = st.query_params
 evento_link = query_params.get("evento", None)
 cat_link = query_params.get("cat", None)
@@ -279,27 +303,30 @@ if evento_link:
             st.query_params.clear()
             st.rerun()
 
-# --- 2. PÁGINA INICIAL DE APRESENTAÇÃO DO SISTEMA ---
+# --- 2. VERDADEIRA PÁGINA INICIAL DE APRESENTAÇÃO E MENU PRINCIPAL ---
 elif pagina_atual == "home":
     st.markdown('<div class="eccomi-title">ECCOMI</div>', unsafe_allow_html=True)
     st.markdown("<p><b>Sistema B2B de Gestão de Eventos, Controlo de Embarque, Desembarque e Segurança para Guias e Recreadores.</b></p>", unsafe_allow_html=True)
     st.markdown("<hr style='border: 0.5px solid #000000; margin-top: 5px; margin-bottom: 15px;'>", unsafe_allow_html=True)
     
-    st.markdown("<h3>Apresentação e Vantagens</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>Apresentação Geral do Software</h3>", unsafe_allow_html=True)
     st.markdown("""
         <div class="info-box">
-            <b>O que é o Eccomi?</b><br>
-            Uma ferramenta cirúrgica de campo desenvolvida para agências de turismo, escolas e creches. O Eccomi elimina planilhas de papel e grupos de WhatsApp caóticos, oferecendo chamadas rápidas, alertas médicos visuais em destaque e acesso centralizado a links de fotos em nuvem (Google Drive).<br><br>
-            <b>Como funciona?</b><br>
-            Sem necessidade de alterar sistemas legados ou instalar aplicações complexas. Basta carregar a planilha oficial do seu evento e a equipe de campo terá tudo pronto para garantir a segurança absoluta dos participantes de forma intuitiva e imediata.
+            <b>Missão e Eficiência Operacional</b><br>
+            O Eccomi foi desenhado especificamente para eliminar o caos de planilhas de papel e grupos de mensagens em excursões escolares, creches e viagens corporativas. Oferece controlo rigoroso de segurança, fichas médicas em destaque e acesso rápido em campo para monitores e guias.<br><br>
+            <b>Vantagens Competitivas</b><br>
+            - Funcionamento independente sem necessidade de alterar sistemas legados.<br>
+            - Interface limpa, mobile-first, em rigoroso preto e branco para legibilidade sob luz solar direta.<br>
+            - Gestão centralizada de links de fotos (Google Drive) e relatórios de embarque em tempo real.
         </div>
     """, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<h3>Menu de Navegação Principal</h3>", unsafe_allow_html=True)
     
     col_h1, col_h2 = st.columns(2)
     with col_h1:
-        if st.button("Aceder ao Painel de Eventos"):
+        if st.button("Painel de Eventos Ativos"):
             st.query_params["pagina"] = "painel"
             st.rerun()
     with col_h2:
@@ -310,11 +337,11 @@ elif pagina_atual == "home":
     st.markdown("<br>", unsafe_allow_html=True)
     col_h3, col_h4, col_h5 = st.columns(3)
     with col_h3:
-        if st.button("Arquivo Passado"):
+        if st.button("Arquivo de Eventos Passados"):
             st.query_params["pagina"] = "arquivo"
             st.rerun()
     with col_h4:
-        if st.button("Registar Alerta"):
+        if st.button("Registar Ocorrência / Alerta"):
             st.query_params["pagina"] = "alerta"
             st.rerun()
     with col_h5:
