@@ -4,17 +4,19 @@ import io
 import pandas as pd
 import streamlit as st
 
-# ==========================================
-# 1. CONFIGURAÇÃO DA PÁGINA E DESIGN
-# ==========================================
-# Configura o layout da aplicação para ocupar toda a largura da tela (wide)
+# ==============================================================================
+# BLOCO 1: CONFIGURAÇÃO GLOBAL DA PÁGINA E DESIGN VISUAL
+# Explicação: Define o título da aba, o ícone (favicon personalizado em preto) 
+# e ajusta o layout para ocupar toda a largura da tela (wide).
+# ==============================================================================
 st.set_page_config(
     page_title="Eccomi",
+    page_icon="🖖",  # Ícone oficial configurado para a aplicação
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Estilização CSS personalizada (Tema limpo, Preto e Branco, Fonte Nunito)
+# Estilização CSS limpa e profissional (Preto e Branco, Fonte Nunito)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
@@ -53,10 +55,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 2. GERENCIAMENTO DE PASTAS DE DADOS
-# ==========================================
-# Define e cria automaticamente os diretórios locais para salvar planilhas e metadados
+# ==============================================================================
+# BLOCO 2: GERENCIAMENTO DE PASTAS DE DADOS
+# Explicação: Cria automaticamente os diretórios locais para armazenamento 
+# das planilhas de participantes e dos arquivos JSON de metadados operacionais.
+# ==============================================================================
 PASTA_VIAGENS = "bases_viagens"
 PASTA_FESTAS = "bases_festas"
 PASTA_INFO = "bases_info_eventos"
@@ -66,10 +69,11 @@ for p in [PASTA_VIAGENS, PASTA_FESTAS, PASTA_INFO, PASTA_ARQUIVO]:
     if not os.path.exists(p):
         os.makedirs(p)
 
-# ==========================================
-# 3. CONTROLE DE ESTADO E NAVEGAÇÃO
-# ==========================================
-# Gerencia qual página está visível e qual evento está selecionado no momento
+# ==============================================================================
+# BLOCO 3: CONTROLE DE ESTADO E NAVEGAÇÃO ENTRE TELAS
+# Explicação: Utiliza o session_state do Streamlit para alternar entre as páginas 
+# sem perder o contexto do evento ativo.
+# ==============================================================================
 if 'pagina' not in st.session_state:
     st.session_state.pagina = 'home'
 if 'evento_ativo' not in st.session_state:
@@ -92,10 +96,10 @@ def listar_grupos(pasta):
         return sorted([f.replace(".xlsx", "") for f in os.listdir(pasta) if f.endswith(".xlsx")])
     return []
 
-# ==========================================
-# 4. BARRA LATERAL NATIVA (MENU PRINCIPAL)
-# ==========================================
-# Menu fixo lateral para navegação rápida entre as seções do sistema
+# ==============================================================================
+# BLOCO 4: BARRA LATERAL NATIVA (MENU PRINCIPAL)
+# Explicação: Menu lateral oficial do Streamlit para acesso rápido e intuitivo.
+# ==============================================================================
 with st.sidebar:
     st.markdown("## ECCOMI")
     st.markdown("---")
@@ -110,20 +114,20 @@ with st.sidebar:
         navegar('arquivo')
 
 
-# ==========================================
-# 5. ESTRUTURA DE PÁGINAS DA APLICAÇÃO
-# ==========================================
+# ==============================================================================
+# BLOCO 5: ROTEAMENTO DAS PÁGINAS DA APLICAÇÃO
+# ==============================================================================
 
-# --- [TELA 1]: PÁGINA INICIAL (HOME COM RESUMO DOS EVENTOS) ---
+# --- TELA 1: PÁGINA INICIAL (HOME COM RESUMO DINÂMICO DOS EVENTOS) ---
 if st.session_state.pagina == 'home':
     st.markdown("<h1>ECCOMI</h1>", unsafe_allow_html=True)
     st.markdown("<p><b>Sistema B2B de Gestão de Eventos, Controle de Embarque e Segurança.</b></p>", unsafe_allow_html=True)
     st.markdown("<hr style='border: 1px solid #000;'>", unsafe_allow_html=True)
     
     st.markdown("<h3>Resumo Geral dos Eventos Ativos</h3>", unsafe_allow_html=True)
-    st.markdown("<p>Acompanhe abaixo o panorama atual de todos os eventos cadastrados (viagens, excursões e festas).</p>", unsafe_allow_html=True)
+    st.markdown("<p>Panorama executivo de todos os eventos em andamento (contabilizando confirmados, faltosos, datas e local).</p>", unsafe_allow_html=True)
     
-    # Coleta todos os eventos de viagens e festas cadastrados
+    # Varre todas as pastas para coletar e resumir os eventos criados
     todos_eventos = []
     for g in listar_grupos(PASTA_VIAGENS):
         todos_eventos.append((g, PASTA_VIAGENS, "Viagem/Excursão"))
@@ -135,15 +139,9 @@ if st.session_state.pagina == 'home':
             caminho_planilha = os.path.join(pasta_origem, f"{g}.xlsx")
             caminho_info_json = os.path.join(PASTA_INFO, f"{g}_info.json")
             
-            # Dados padrão caso não encontre arquivos complementares
-            total_part = 0
-            presentes = 0
-            faltosos = 0
-            local_ev = "Não informado"
-            horario_ev = "Não informado"
-            status_ev = "Programado / Em Andamento"
+            total_part, presentes, faltosos = 0, 0, 0
+            local_ev, horario_ev, status_ev = "Não informado", "Não informado", "Programado / Em Andamento"
             
-            # Lê métricas de presença da planilha
             if os.path.exists(caminho_planilha):
                 try:
                     df_temp = pd.read_excel(caminho_planilha)
@@ -154,7 +152,6 @@ if st.session_state.pagina == 'home':
                 except:
                     pass
                     
-            # Lê informações detalhadas (local, data, status de cancelamento)
             if os.path.exists(caminho_info_json):
                 try:
                     with open(caminho_info_json, "r", encoding="utf-8") as f:
@@ -165,7 +162,7 @@ if st.session_state.pagina == 'home':
                 except:
                     pass
             
-            # Exibe o card individual resumido para cada evento na Home
+            # Card resumo individual por evento
             st.markdown(f"""
                 <div class="card-evento">
                     <h3 style="margin-top:0; margin-bottom:5px;">{g.replace('_', ' ')} <span style="font-size:12px; font-weight:normal; border:1px solid #000; padding:2px 6px; border-radius:3px;">{cat_nome}</span></h3>
@@ -190,7 +187,7 @@ if st.session_state.pagina == 'home':
             navegar('arquivo')
 
 
-# --- [TELA 2]: PAINEL DE EVENTOS (LISTAGEM E BUSCA) ---
+# --- TELA 2: PAINEL DE EVENTOS (LISTAGEM E GESTÃO GERAL) ---
 elif st.session_state.pagina == 'painel':
     if st.button("Voltar à Página Inicial"): 
         navegar('home')
@@ -268,7 +265,7 @@ elif st.session_state.pagina == 'painel':
         st.info("Nenhum evento cadastrado nesta categoria.")
 
 
-# --- [TELA 3]: ÁREA INTERNA DO EVENTO SELECIONADO (LOGÍSTICA, CHAMADA, SAÍDA E EXPORTAÇÃO) ---
+# --- TELA 3: ÁREA INTERNA DO EVENTO SELECIONADO (LOGÍSTICA, CHAMADA E EXPORTAÇÃO) ---
 elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ativo:
     if st.button("Voltar ao Painel"): 
         navegar('painel')
@@ -317,7 +314,7 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
                 </div>
             """, unsafe_allow_html=True)
             
-            # Botão de Exportação de Relatório Executivo em Excel
+            # Seção de Exportação do Relatório do Evento em Excel (.xlsx)
             st.markdown("### Exportar Fechamento do Evento")
             
             total_part = len(df)
@@ -440,7 +437,7 @@ elif st.session_state.pagina == 'evento_interno' and st.session_state.evento_ati
                     st.rerun()
 
 
-# --- [TELA 4]: CADASTRAR NOVO EVENTO ---
+# --- TELA 4: CADASTRAR NOVO EVENTO ---
 elif st.session_state.pagina == 'cadastrar':
     if st.button("Voltar à Página Inicial"): 
         navegar('home')
@@ -461,18 +458,8 @@ elif st.session_state.pagina == 'cadastrar':
                 st.warning("Evento já existe.")
 
 
-# --- [TELA 5]: EVENTOS ARQUIVADOS ---
+# --- TELA 5: EVENTOS ARQUIVADOS ---
 elif st.session_state.pagina == 'arquivo':
     if st.button("Voltar à Página Inicial"): 
         navegar('home')
-    st.markdown("<h1>EVENTOS ARQUIVADOS</h1>", unsafe_allow_html=True)
-    
-    arquivados = listar_grupos(PASTA_ARQUIVO)
-    if arquivados:
-        for arq in arquivados:
-            st.markdown(f'<div class="card-evento"><b>{arq.replace("_", " ")}</b></div>', unsafe_allow_html=True)
-            if st.button(f"Desarquivar {arq}"):
-                os.rename(os.path.join(PASTA_ARQUIVO, f"{arq}.xlsx"), os.path.join(PASTA_VIAGENS, f"{arq}.xlsx"))
-                st.rerun()
-    else:
-        st.info("Nenhum evento arquivado no momento.")
+    st.markdown("<h1>EVENTOS ARQUIVADOS</h1>", unsafe_allow
