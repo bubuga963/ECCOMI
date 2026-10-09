@@ -9,12 +9,12 @@ import streamlit as st
 # ==============================================================================
 st.set_page_config(
     page_title="Eccomi",
-    page_icon="🖤",
+    page_icon="🖖",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Estilização CSS estrita (Preto e Branco, Fonte Nunito, sem quebras de layout)
+# Estilização CSS limpa e sem conflitos visuais
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
@@ -120,7 +120,6 @@ if st.session_state.pagina == 'home':
     st.markdown("<h3>Resumo Geral dos Eventos Ativos</h3>", unsafe_allow_html=True)
     st.markdown("<p>Acompanhe abaixo o panorama atual de todos os eventos cadastrados.</p>", unsafe_allow_html=True)
     
-    # Coleta todos os eventos criados nas pastas de viagens e festas
     todos_eventos = []
     for g in listar_grupos(PASTA_VIAGENS):
         todos_eventos.append((g, PASTA_VIAGENS, "Viagem/Excursão"))
@@ -155,7 +154,6 @@ if st.session_state.pagina == 'home':
                 except:
                     pass
             
-            # Exibe o cartão resumo dinâmico para cada evento na Home
             st.markdown(f"""
                 <div class="card-evento">
                     <h3 style="margin-top:0; margin-bottom:5px;">{g.replace('_', ' ')} <span style="font-size:12px; font-weight:normal; border:1px solid #000; padding:2px 6px; border-radius:3px;">{cat_nome}</span></h3>
@@ -180,7 +178,7 @@ if st.session_state.pagina == 'home':
             navegar('arquivo')
 
 
-# --- TELA 2: PAINEL DE EVENTOS (BUSCA E GESTÃO) ---
+# --- TELA 2: PAINEL DE EVENTOS ---
 elif st.session_state.pagina == 'painel':
     if st.button("Voltar à Página Inicial", key="voltar_home_painel"): 
         navegar('home')
@@ -246,9 +244,8 @@ elif st.session_state.pagina == 'painel':
                         os.remove(caminho_inf_g)
                     st.rerun()
             
-            # Expander limpo para atualização de planilha sem bugs visuais
             with st.expander(f"Atualizar Planilha: {g.replace('_', ' ')}"):
-                novo_excel = st.file_uploader("Enviar novo arquivo Excel (.xlsx)", type=["xlsx"], key=f"up_{g}")
+                novo_excel = st.file_uploader("Enviar arquivo Excel (.xlsx)", type=["xlsx"], key=f"up_{g}")
                 if novo_excel is not None:
                     df_novo = pd.read_excel(novo_excel)
                     df_novo.to_excel(caminho_g, index=False)
